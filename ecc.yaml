@@ -17,6 +17,6 @@
         image_id: ami-0f5ee92e2d63afc18
         tags:
           Environment: Testing
-
-    vars:
+      
+      vars:
         ansible_python_interpreter: /usr/bin/python3      
