@@ -5,16 +5,15 @@
   gather_facts: False
   tags: provisioning
 
-<<<<<<< HEAD
   tasks:
     - name: start an instance with a public IP address
-  amazon.aws.ec2_instance:
-    name: "public-compute-instance"
-    key_name: "Mumbai"
-    instance_type: t2.micro
-    security_group: default
-    network:
-      assign_public_ip: true
-    image_id: ami-0f5ee92e2d63afc18
-    tags:
-      Environment: Testing
+      amazon.aws.ec2_instance:
+        name: "public-compute-instance"
+        key_name: "Mumbai"
+        instance_type: t2.micro
+        security_group: default
+        network:
+          assign_public_ip: true
+        image_id: ami-0f5ee92e2d63afc18
+        tags:
+          Environment: Testing
