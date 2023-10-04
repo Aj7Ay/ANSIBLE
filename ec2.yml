@@ -64,5 +64,5 @@
           sudo apt install docker.io -y
           sudo systemctl start docker
           sudo systemctl enable docker
-          sudo docker run -d --name zomato -p 3000:3000 sevenajay/zomato:latest
+          sudo docker run -d --name 2048 -p 3000:3000 sevenajay/2048:latest
       register: ec2
