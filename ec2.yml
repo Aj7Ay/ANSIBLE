@@ -33,6 +33,10 @@
             to_port: 8080
             cidr_ip: 0.0.0.0/0
           - proto: tcp
+            from_port: 3000
+            to_port: 3000
+            cidr_ip: 0.0.0.0/0  
+          - proto: tcp
             from_port: 80
             to_port: 80
             cidr_ip: 0.0.0.0/0
@@ -54,5 +58,11 @@
         region: "{{ region }}"
         key_name: "{{ keypair }}"
         count: "{{ count }}"
-        tags: "{{ tag_name }}"
+        tuser_data: |
+          #!/bin/bash
+          sudo apt update -y
+          sudo apt install docker.io -y
+          sudo systemctl start docker
+          sudo systemctl enable docker
+          sudo docker run -d --name zomato -p 3000:3000 sevenajay/zomato:latest
       register: ec2
