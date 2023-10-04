@@ -1,57 +1,58 @@
 ---
- - name:  provisioning a new EC2 using Ansible playbook
-   hosts: localhost
-   connection: local
-   gather_facts: False
-   tags: provisioning
+- name: Provisioning a new EC2 instance and security group
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  tags: provisioning
 
-   vars:
-     keypair: Mumbai
-     instance_type: t2.micro
-     image_id: ami-0f5ee92e2d63afc18
-     wait: yes
-     group: webserver
-     count: 1
-     region: ap-south-1
-     security_group: ec2-security-group
+  vars:
+    keypair: Mumbai
+    instance_type: t2.micro
+    image_id: ami-0f5ee92e2d63afc18
+    wait: yes
+    group: webserver
+    count: 1
+    region: ap-south-1
+    security_group: ec2-security-group
+    tag_name:
+      Name: Aj-ec2
 
-   tasks:
+  tasks:
+    - name: Create a security group
+      amazon.aws.ec2_group:
+        name: "{{ security_group }}"
+        description: Security Group for webserver Servers
+        region: "{{ region }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 8080
+            to_port: 8080
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+      register: basic_firewall
 
-     - name: Create a security group
-       local_action:
-         module: ec2_group
-         name: "{{ security_group }}"
-         description: Security Group for webserver Servers
-         region: "{{ region }}"
-         rules:
-            - proto: tcp
-              from_port: 22
-              to_port: 22
-              cidr_ip: 0.0.0.0/0
-            - proto: tcp
-              from_port: 8080
-              to_port: 8080
-              cidr_ip: 0.0.0.0/0
-            - proto: tcp
-              from_port: 80
-              to_port: 80
-              cidr_ip: 0.0.0.0/0
-            - proto: tcp
-              from_port: 443
-              to_port: 443
-              cidr_ip: 0.0.0.0/0
-         rules_egress:
-            - proto: all
-              cidr_ip: 0.0.0.0/0
-       register: basic_firewall
-
-     - name: Launch the new EC2 Instance
-       amazon.aws.ec2_instance:
-                      security_group={{ security_group }}
-                      instance_type={{ instance_type}}
-                      image_id={{ image_id }}
-                      wait=true
-                      region={{ region }}
-                      key_name={{ keypair }}
-                      count={{count}}
-       register: ec2
+    - name: Launch the new EC2 Instance
+      amazon.aws.ec2_instance:
+        security_group: "{{ security_group }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ image_id }}"
+        wait: "{{ wait }}"
+        region: "{{ region }}"
+        key_name: "{{ keypair }}"
+        count: "{{ count }}"
+        tags: "{{ tag_name }}"
+      register: ec2
