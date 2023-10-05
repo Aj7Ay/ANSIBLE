@@ -74,6 +74,7 @@
         region: "{{ region }}"
         key_name: "{{ keypair }}"
         count: "{{ count }}"
+        tags: "{{ tag_name }}"
         user_data: |
           #!/bin/bash
           sudo apt update -y
