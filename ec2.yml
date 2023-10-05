@@ -46,8 +46,7 @@
             cidr_ip: 0.0.0.0/0
         rules_egress:
           - proto: all
-            cidr_ip: 0.0.0.0/0
-        ansible_python_interpreter: /usr/bin/python3    
+            cidr_ip: 0.0.0.0/0   
       register: basic_firewall
 
     - name: Launch the new EC2 Instance
