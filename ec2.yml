@@ -18,6 +18,7 @@
       pip:
         name: "{{ item }}"
         executable: /usr/bin/python3.10
+        extra_args: -m 
       loop:
         - boto3
         - botocore
