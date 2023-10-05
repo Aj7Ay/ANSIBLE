@@ -17,8 +17,7 @@
     - name: Install dependencies
       pip:
         name: "{{ item }}"
-        executable: /usr/bin/python3.10
-        extra_args: "-m pip install"
+        executable: "/usr/bin/python3.10 -m pip"
       loop:
         - boto3
         - botocore
