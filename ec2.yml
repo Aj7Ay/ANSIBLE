@@ -65,5 +65,4 @@
           sudo systemctl start docker
           sudo systemctl enable docker
           sudo docker run -d --name 2048 -p 3000:3000 sevenajay/2048:latest
-        ansible_python_interpreter: /usr/bin/python3  
       register: ec2
