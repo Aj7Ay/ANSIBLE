@@ -5,6 +5,23 @@
   gather_facts: False
   tags: provisioning
 
+  pre_tasks:
+
+    - name: Gather facts
+      setup:
+            
+    - name: Print python version
+      debug:
+        msg: "Using Python {{ ansible_python_version }}"
+              
+    - name: Install dependencies
+      pip:
+        name: "{{ item }}"
+        executable: /usr/bin/python3.10
+      loop:
+        - boto3
+        - botocore
+
   vars:
     ansible_python_interpreter: /usr/bin/python3.10
     keypair: Mumbai
@@ -16,22 +33,7 @@
     region: ap-south-1
     security_group: ec2-security-group
     tag_name:
-      Name: Aj-ec2
-      
-  pre_tasks:
-    - name: Print python version
-      debug:
-        msg: "Using Python {{ ansible_python_version }}"
-
-    - name: Install boto3
-      pip:
-        name: boto3
-        executable: "{{ ansible_python_interpreter }}"
-
-    - name: Install botocore
-      pip:
-        name: botocore
-        executable: "{{ ansible_python_interpreter }}"    
+      Name: Aj-ec2   
 
   tasks:
     - name: Create a security group
