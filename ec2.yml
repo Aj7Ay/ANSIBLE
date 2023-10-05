@@ -6,6 +6,7 @@
   tags: provisioning
 
   vars:
+    ansible_python_interpreter: /usr/bin/python3.10
     keypair: Mumbai
     instance_type: t2.micro
     image_id: ami-0f5ee92e2d63afc18
@@ -16,7 +17,21 @@
     security_group: ec2-security-group
     tag_name:
       Name: Aj-ec2
-    ansible_python_interpreter: /usr/bin/python3  
+      
+  pre_tasks:
+    - name: Print python version
+      debug:
+        msg: "Using Python {{ ansible_python_version }}"
+
+    - name: Install boto3
+      pip:
+        name: boto3
+        executable: "{{ ansible_python_interpreter }}"
+
+    - name: Install botocore
+      pip:
+        name: botocore
+        executable: "{{ ansible_python_interpreter }}"    
 
   tasks:
     - name: Create a security group
