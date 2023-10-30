@@ -32,7 +32,7 @@
   - name: Install java
     ansible.builtin.shell: apt install fontconfig openjdk-17-jre -y
 
-  - name: Update the repository cache and update package "nginx" to latest version using default release squeeze-backport
+  - name: Install Jenkins
     ansible.builtin.apt:
       name: jenkins
       state: latest
