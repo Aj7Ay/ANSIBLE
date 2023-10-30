@@ -58,7 +58,7 @@
         region: "{{ region }}"
         key_name: "{{ keypair }}"
         count: "{{ count }}"
-        tuser_data: |
+        user_data: |
           #!/bin/bash
           sudo apt update -y
           sudo apt install docker.io -y
