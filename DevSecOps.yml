@@ -188,11 +188,16 @@
         groups: docker
         append: yes
 
+    - name: Set permissions for Docker socket
+      ansible.builtin.file:
+        path: /var/run/docker.sock
+        mode: '0777'
+
     - name: Restart Docker service
       ansible.builtin.systemd:
         name: docker
         state: restarted
-        daemon_reload: yes
+        daemon_reload: yes        
 
     # AWS CLI installation
     - name: Check if AWS CLI is installed
