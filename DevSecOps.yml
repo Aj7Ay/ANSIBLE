@@ -1,0 +1,242 @@
+---
+- name: Install DevOps Tools
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install common packages
+      apt:
+        name:
+          - gnupg
+          - software-properties-common
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - wget
+          - unzip
+        state: present
+
+    # Jenkins installation
+    - name: Update all packages to their latest version
+      apt:
+        name: "*"
+        state: latest
+
+    - name: Download Jenkins key
+      ansible.builtin.get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+        dest: /usr/share/keyrings/jenkins-keyring.asc
+        
+    - name: Add Jenkins repo
+      ansible.builtin.apt_repository:
+        repo: deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
+        state: present
+        filename: jenkins.list  
+
+    - name: Install fontconfig
+      ansible.builtin.apt:
+        name: fontconfig
+        state: present
+
+    - name: Install Java
+      ansible.builtin.apt:
+        name: openjdk-17-jre
+        state: present
+
+    - name: Install Jenkins
+      ansible.builtin.apt:
+        name: jenkins
+        state: present  
+
+    - name: Ensure Jenkins service is running
+      ansible.builtin.systemd:
+        name: jenkins
+        state: started
+        enabled: yes 
+           
+    # HashiCorp (Terraform) setup
+    - name: Add HashiCorp GPG key
+      ansible.builtin.get_url:
+        url: https://apt.releases.hashicorp.com/gpg
+        dest: /usr/share/keyrings/hashicorp-archive-keyring.asc
+        mode: '0644'
+
+    - name: Add HashiCorp repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.asc] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
+        filename: hashicorp
+        update_cache: yes
+
+    - name: Install Terraform
+      ansible.builtin.apt:
+        name: terraform
+        state: present
+        update_cache: yes
+
+    # Snyk installation
+    - name: Download and install Snyk
+      ansible.builtin.get_url:
+        url: https://static.snyk.io/cli/latest/snyk-linux
+        dest: /usr/local/bin/snyk
+        mode: '0755'
+
+    # Helm installation
+    - name: Download Helm installation script
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        dest: /tmp/get_helm.sh
+        mode: '0700'
+
+    - name: Install Helm
+      ansible.builtin.command: /tmp/get_helm.sh
+
+    # Kubernetes tools installation
+    - name: Create Kubernetes directory
+      ansible.builtin.file:
+        path: /usr/local/bin
+        state: directory
+        mode: '0755'
+
+    - name: Download kubectl
+      ansible.builtin.get_url:
+        url: https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
+
+    - name: Download kubeadm
+      ansible.builtin.get_url:
+        url: https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubeadm
+        dest: /usr/local/bin/kubeadm
+        mode: '0755'
+
+    - name: Download kubelet
+      ansible.builtin.get_url:
+        url: https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubelet
+        dest: /usr/local/bin/kubelet
+        mode: '0755'
+
+    - name: Verify kubectl installation
+      ansible.builtin.command: kubectl version --client
+      register: kubectl_version
+      changed_when: false
+
+    - name: Verify kubeadm installation
+      ansible.builtin.command: kubeadm version
+      register: kubeadm_version
+      changed_when: false
+
+    - name: Display Kubernetes tools versions
+      ansible.builtin.debug:
+        var: item
+      loop:
+        - "{{ kubectl_version.stdout }}"
+        - "{{ kubeadm_version.stdout }}"
+
+    - name: Download kubelet service file
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/kubernetes/release/v0.4.0/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service
+        dest: /etc/systemd/system/kubelet.service
+        mode: '0644'
+
+    - name: Create kubelet service directory
+      ansible.builtin.file:
+        path: /etc/systemd/system/kubelet.service.d
+        state: directory
+        mode: '0755'
+
+    - name: Download kubelet service config
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/kubernetes/release/v0.4.0/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf
+        dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+        mode: '0644'
+
+    - name: Enable and start kubelet service
+      ansible.builtin.systemd:
+        name: kubelet
+        state: started
+        enabled: yes
+        daemon_reload: yes
+
+    # Docker installation
+    - name: Add Docker GPG apt Key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Update apt and install docker-ce
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+
+    - name: Add user to docker group
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Restart Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: restarted
+        daemon_reload: yes
+
+    # AWS CLI installation
+    - name: Check if AWS CLI is installed
+      ansible.builtin.command: aws --version
+      register: awscli_version
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Download AWS CLI installer
+      ansible.builtin.unarchive:
+        src: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp
+        remote_src: yes
+      when: awscli_version.rc != 0
+
+    - name: Install AWS CLI
+      ansible.builtin.command: /tmp/aws/install
+      when: awscli_version.rc != 0
+
+    - name: Clean up AWS CLI installer
+      ansible.builtin.file:
+        path: /tmp/aws
+        state: absent
+
+    # Trivy installation
+    - name: Download Trivy GPG key
+      ansible.builtin.get_url:
+        url: https://aquasecurity.github.io/trivy-repo/deb/public.key
+        dest: /tmp/trivy.key
+        mode: '0644'
+
+    - name: Add Trivy GPG key
+      ansible.builtin.shell: |
+        gpg --dearmor < /tmp/trivy.key | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+
+    - name: Add Trivy repository
+      ansible.builtin.shell: |
+        echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -cs) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install Trivy
+      ansible.builtin.apt:
+        name: trivy
+        state: present
