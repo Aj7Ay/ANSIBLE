@@ -75,7 +75,6 @@
         key_name: "{{ keypair }}"
         count: "{{ count }}"
 <<<<<<< HEAD:ec2.yml
-=======
         tags: "{{ tag_name }}"
 >>>>>>> 8a4f7adb77293a7d086f98dfa3d01770078bbc46:ec2.yaml
         user_data: |
